@@ -3,7 +3,8 @@
 #include <deque>
 #include <fstream>
 #include <random>
-#include <bits/stl_deque.h>
+
+#include "timer.hpp"
 
 #define A_BIN 0
 #define C_BIN 1
@@ -12,9 +13,12 @@
 
 #define OLI_LENGTH 10
 #define MATRIX_COUNT 1048576
+#define MAX_NEGATIVE 9
 
+#define PRINT_RESULT
+#define PRINT_STATS
+#define COUNT_STATS
 
-#define MAX_NEGATIVE 3
 using namespace std;
 
 uint32_t getRandom(uint32_t min, uint32_t max){
@@ -34,10 +38,12 @@ uint32_t getRandom(uint32_t min, uint32_t max){
 class OlinukleoLibrary{
 private:
     vector<int> oliLib;
-    deque<int> result;
-    unsigned n;
+    unsigned m;
 
 public:
+    unsigned negativeOffset[MAX_NEGATIVE] = {0};
+    unsigned negativeError = 0;
+    deque<int> result;
     bool microArray[MATRIX_COUNT] = {false};
     uint32_t stringIntoIntCoder(string sequence);
     string intIntoStringCoder(uint32_t codedNumber);
@@ -46,10 +52,12 @@ public:
     void printVectorAsString();
 
     void greedyAlgorithm(int startNukleo);
-    void successor(int Nukleo);
-    void predecessor(int Nukleo);
+    int successor(int Nukleo);
+    int predecessor(int Nukleo);
+    bool test();
 
 
+    void printStats();
 };
 
 uint32_t OlinukleoLibrary::stringIntoIntCoder(string sequence){
@@ -109,16 +117,19 @@ int OlinukleoLibrary::readFromFile(const char* fname, unsigned fileLength){
     file.open(fname, ios::in);
     while (!file.eof()){
         file >> tmp;
-//        oliLib.push_back(OlinukleoLibrary::stringIntoIntCoder(tmp));
         microArray[OlinukleoLibrary::stringIntoIntCoder(tmp)]=true;
-        //todo differFileLength
-        if(iterator==randomLine)randomNukleo=OlinukleoLibrary::stringIntoIntCoder(tmp);
+        //todo take properties from file name
+        if(iterator==randomLine){
+            randomNukleo=OlinukleoLibrary::stringIntoIntCoder(tmp);
+            microArray[OlinukleoLibrary::stringIntoIntCoder(tmp)]= false;
+        }
         iterator++;
     }
 
     file.close();
 
-    n = iterator;
+    //todo empty line at end
+    m = iterator - 1;
     return randomNukleo;
 }
 
@@ -136,72 +147,124 @@ void OlinukleoLibrary::printVectorAsString(){
 
 
 bool checkIfMatch(uint32_t leftOli, uint32_t rightOli){
-    if ( (leftOli & ((1<<18)-1) ) == ( (rightOli>>2) & ((1<<18)-1)) ) return true; else return false;
+    return (leftOli & ((1 << 18) - 1) ) == ((rightOli >> 2) & ((1 << 18) - 1));
 }
 
+bool checkIfMatch(uint32_t leftOli, uint32_t rightOli, uint32_t offset){
+    return (leftOli & ((1 << (20-(offset*2))) - 1) ) == ((rightOli >> (offset*2)) & ((1 << (20-(offset*2))) - 1));
+}
 
 int main(int argc, char *argv[]) {
     cout << "Test Kondoma" << endl;
 
     OlinukleoLibrary kondom;
     int startNukleo;
-    if (argc > 1) startNukleo = kondom.readFromFile(argv[1],500);
-    else startNukleo = kondom.readFromFile("/home/klimas/Documents/Projects/clion/bio/data/negative/113.500-8",500);
+    if (argc > 1) startNukleo = kondom.readFromFile(argv[1],492);
+    else startNukleo = kondom.readFromFile("/home/klimas/Documents/Projects/clion/bio/data/negative/113.500-8",492);
+
+    Timer timer;
+    timer.start();
     kondom.greedyAlgorithm(startNukleo);
+    printf("Processing time: %fs\n", timer.stop());
 
+#ifdef PRINT_STATS
+    kondom.printStats();
+#endif
 
-    //kondom.printVectorAsString();
-
-//    cout << getRandom(0,7) << endl;
-//    cout << kondom.microArray[549385] << endl;
+    if(!kondom.test())cout << "cos sie zepsulo" << std::endl;
 
     return 0;
 }
 
 void OlinukleoLibrary::greedyAlgorithm(int startNukleo) {
     result.push_back(startNukleo);
-//    successor(startNukleo);
-    predecessor(startNukleo);
+    int nukleo = startNukleo;
+    do {
+        nukleo = successor(nukleo);
+    } while (nukleo != -1);
 
-    for (auto element :result){
-        cout << intIntoStringCoder(element) << endl;
-    }
+    nukleo = startNukleo;
+    do {
+        nukleo = predecessor(nukleo);
+    } while (nukleo != -1);
 
-
-    cout << checkIfMatch(result.at(0), result.at(1)) << endl;
 }
 
-void OlinukleoLibrary::successor(int Nukleo) {
+int OlinukleoLibrary::successor(int Nukleo) {
     int base;
     for (int i = 1; i <= MAX_NEGATIVE; ++i) {
-        base = (Nukleo<<2) & ((1<<20)-1);
-        for (int j = base; j < base + pow(4,MAX_NEGATIVE); ++j) {
+        base = (Nukleo<<2*i) & ((1<<20)-1);
+        for (int j = base; j < base + pow(4,i); ++j) {
             if(microArray[j]) {
+#ifdef COUNT_STATS
+                ++negativeOffset[i-1];
+#endif
+                negativeError+=i-1;
+                microArray[j] = false;
                 result.push_back(j);
-//                successor(j);
-                return;
+                return j;
 
             }
         }
 
     }
-
+    return -1;
 }
 
-void OlinukleoLibrary::predecessor(int Nukleo){
+int OlinukleoLibrary::predecessor(int Nukleo){
     int base;
     int step = 262144;
     for (int i = 1; i <= MAX_NEGATIVE; ++i) {
-        base = (Nukleo>>2) & ((1<<20)-1);
-        for (int j = base; j < base + MATRIX_COUNT; j+=step) {
+        base = (Nukleo>>2*i) & ((1<<20)-1);
+        for (int j = base; j <  MATRIX_COUNT; j+=step) {
             if(microArray[j]) {
+#ifdef COUNT_STATS
+                ++negativeOffset[i-1];
+#endif
+                negativeError+=i-1;
+                microArray[j] = false;
                 result.push_front(j);
-//                predecessor(j);
-                return;
+                return j;
             }
         }
         step/=4;
 
     }
+    return -1;
+}
+
+bool OlinukleoLibrary::test() {
+    int i = 0;
+    int negative[MAX_NEGATIVE] = {0};
+    for (auto element :result){
+#ifdef PRINT_RESULT
+        cout << intIntoStringCoder(element) << endl;
+#endif
+        if(i!=result.size()-1) {
+            for (int j = 1; j <= MAX_NEGATIVE; ++j) {
+                if(checkIfMatch(result.at(i), result.at(i+1),j) ){
+                    ++negative[j-1];
+                    break;
+                }
+                if(j==MAX_NEGATIVE) return false;
+            }
+        }
+        ++i;
+    }
+#ifdef PRINT_STATS
+    for (int k = 0; k < MAX_NEGATIVE-1; ++k) {
+        cout << "Neagtive with " << k+2 << " offset: " << negative[k+1] << endl;
+    }
+#endif
+    return true;
+}
+
+void OlinukleoLibrary::printStats() {
+    cout << "Słów w sekwencji: " << result.size() << endl;
+    cout << "Słów w zbiorze: " << m << endl;
+    for (int i = 0; i < MAX_NEGATIVE-1; ++i) {
+        cout << "NO " << i + 2 << ": " << negativeOffset[i+1] << endl;
+    }
+    cout << "Negative: " << negativeError << endl;
 
 }
