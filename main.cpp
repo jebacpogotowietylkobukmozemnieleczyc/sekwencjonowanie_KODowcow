@@ -13,7 +13,7 @@
 
 #define OLI_LENGTH 10
 #define MATRIX_COUNT 1048576
-#define MAX_NEGATIVE 9
+#define MAX_NEGATIVE 1
 
 #define PRINT_RESULT
 #define PRINT_STATS
@@ -182,16 +182,20 @@ void OlinukleoLibrary::greedyAlgorithm(int startNukleo) {
     do {
         nukleo = successor(nukleo);
     } while (nukleo != -1);
-
     nukleo = startNukleo;
     do {
         nukleo = predecessor(nukleo);
     } while (nukleo != -1);
 
+//    for (int el : result) {
+//        cout << intIntoStringCoder(el) << endl;
+//    }
+
 }
 
 int OlinukleoLibrary::successor(int Nukleo) {
     int base;
+    int r =-1;
     for (int i = 1; i <= MAX_NEGATIVE; ++i) {
         base = (Nukleo<<2*i) & ((1<<20)-1);
         for (int j = base; j < base + pow(4,i); ++j) {
@@ -200,19 +204,21 @@ int OlinukleoLibrary::successor(int Nukleo) {
                 ++negativeOffset[i-1];
 #endif
                 negativeError+=i-1;
-                microArray[j] = false;
-                result.push_back(j);
-                return j;
+                r=j;
 
             }
         }
 
+    }if(r!=-1) {
+        microArray[r] = false;
+        result.push_back(r);
     }
-    return -1;
+    return r;
 }
 
 int OlinukleoLibrary::predecessor(int Nukleo){
     int base;
+    int r =-1;
     int step = 262144;
     for (int i = 1; i <= MAX_NEGATIVE; ++i) {
         base = (Nukleo>>2*i) & ((1<<20)-1);
@@ -222,15 +228,17 @@ int OlinukleoLibrary::predecessor(int Nukleo){
                 ++negativeOffset[i-1];
 #endif
                 negativeError+=i-1;
-                microArray[j] = false;
-                result.push_front(j);
-                return j;
+                r=j;
             }
         }
         step/=4;
 
     }
-    return -1;
+    if(r!=-1) {
+        microArray[r] = false;
+        result.push_front(r);
+    }
+    return r;
 }
 
 bool OlinukleoLibrary::test() {
