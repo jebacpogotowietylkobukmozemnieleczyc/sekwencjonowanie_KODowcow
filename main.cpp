@@ -3,6 +3,8 @@
 #include <deque>
 #include <fstream>
 #include <random>
+#include <array>
+#include <algorithm>
 
 #include "timer.hpp"
 
@@ -13,7 +15,7 @@
 
 #define OLI_LENGTH 10
 #define MATRIX_COUNT 1048576
-#define MAX_NEGATIVE 1
+#define MAX_NEGATIVE 2
 
 //#define PRINT_RESULT
 #define PRINT_STATS
@@ -35,10 +37,30 @@ uint32_t getRandom(uint32_t min, uint32_t max){
 }
 
 
+
+
 class OlinukleoLibrary{
 private:
     vector<int> oliLib;
     unsigned m;
+public:
+    OlinukleoLibrary() {
+        for (int i = 0; i < MAX_NEGATIVE; ++i) {
+            std::generate_n(std::back_inserter(randomVector[i]), pow(4,i+1), [&](){ return randomVector[i].size(); });
+
+            shuffleRandomVector(i+1);
+
+//            cout << "Array: " <<  i << endl;
+//            for (int el : randomVector[i]) {
+//                cout << el << endl;
+//            }
+        }
+
+
+    }
+
+private:
+    array< vector<int>,MAX_NEGATIVE> randomVector;
 
 public:
     unsigned negativeOffset[MAX_NEGATIVE] = {0};
@@ -51,9 +73,11 @@ public:
     void printVector();
     void printVectorAsString();
 
-    void greedyAlgorithm(int startNukleo);
+    void greedyAlgorithm(int startNukleo, unsigned randomFrequency);
     int successor(uint32_t base, unsigned offset);
     int predecessor(uint32_t nucleotide, unsigned offset);
+    void shuffleRandomVector(int offset);
+
     bool test();
 
 
@@ -164,7 +188,7 @@ int main(int argc, char *argv[]) {
 
     Timer timer;
     timer.start();
-    kondom.greedyAlgorithm(startNukleo);
+    kondom.greedyAlgorithm(startNukleo,10);
     printf("Processing time: %fs\n", timer.stop());
 
 #ifdef PRINT_STATS
@@ -176,16 +200,21 @@ int main(int argc, char *argv[]) {
     return 0;
 }
 
-void OlinukleoLibrary::greedyAlgorithm(int startNukleo) {
+void OlinukleoLibrary::greedyAlgorithm(int startNukleo,unsigned randomFrequency) {
     result.push_back(startNukleo);
     uint32_t successorNucleotide = startNukleo;
     uint32_t predecessorNucleotide = startNukleo;
-            cout << "Next " << intIntoStringCoder(startNukleo) << endl;
+
+    array<int,MAX_NEGATIVE> countOffset = {0};
+
+
     int nextNucleotide = -1;
     for (int i = 1; i <= MAX_NEGATIVE; ++i) {
         while( (nextNucleotide = successor(successorNucleotide,i) )!=-1){
 //            cout << "Start" <<  intIntoStringCoder(successorNucleotide) << endl;
 //            cout << "Next " << intIntoStringCoder(nextNucleotide) << endl;
+            if( (++countOffset[i-1])%randomFrequency==0)shuffleRandomVector(i);
+            if(i>1)--i;
             successorNucleotide = nextNucleotide;
         };
 
@@ -194,6 +223,8 @@ void OlinukleoLibrary::greedyAlgorithm(int startNukleo) {
 //    }
 
         while( (nextNucleotide = predecessor(predecessorNucleotide,i))!=-1){
+            if( (++countOffset[i-1])%randomFrequency==0)shuffleRandomVector(i);
+            if(i>1)--i;
             predecessorNucleotide = nextNucleotide;
         }
 //
@@ -210,45 +241,40 @@ void OlinukleoLibrary::greedyAlgorithm(int startNukleo) {
 }
 
 int OlinukleoLibrary::successor(uint32_t nucleotide, unsigned offset) {
-    vector<int> successors;
     int base = (nucleotide << (2 * offset)) & ((1 << 20) - 1);
-        for (int j = base; j < base + pow(4,offset); ++j) {
-            if(microArray[j]) {
+        for (int j = 0; j <  pow(4,offset); ++j) {
+            int r = base + randomVector[offset-1].at(j);
+            if(microArray[r]) {
 #ifdef COUNT_STATS
                 ++negativeOffset[offset-1];
 #endif
                 negativeError+=offset-1;
-                successors.push_back(j);
+
+                result.push_back(r);
+                microArray[r] = false;
+                return r;
             }
-        }
-        if(!successors.empty()){
-            int r = successors.at(getRandom(0, successors.size() - 1));
-            microArray[r] = false;
-            result.push_back(r);
-            return r;
         }
     return -1;
 }
 
 int OlinukleoLibrary::predecessor(uint32_t nucleotide, unsigned offset){
-    vector<int> predecessor;
     int step = 262144/pow(4,offset-1);
     int base = (nucleotide>>(2*offset)) & ((1<<20)-1);
-        for (int j = base; j <  MATRIX_COUNT; j+=step) {
+    for (int j = 0; j <  pow(4,offset); ++j) {
+        int r = base + randomVector[offset-1].at(j)*step;
             if(microArray[j]) {
 #ifdef COUNT_STATS
                 ++negativeOffset[offset-1];
 #endif
                 negativeError+=offset-1;
-                predecessor.push_back(j);
+
+                microArray[r] = false;
+                result.push_front(r);
+                return r;
             }
         }
-        if(!predecessor.empty()){
-            int r = predecessor.at(getRandom(0, predecessor.size() - 1));
-            microArray[r] = false;
-            result.push_front(r);
-            return r;
-        }
+
     return -1;
 }
 
@@ -291,4 +317,10 @@ void OlinukleoLibrary::printStats() {
     }
     cout << "Negative: " << negativeError << endl;
 
+}
+
+void OlinukleoLibrary::shuffleRandomVector(int offset) {
+    std::random_device rd;
+    std::mt19937 g(rd());
+    std::shuffle(randomVector[offset-1].begin(), randomVector[offset-1].end(), g);
 }
