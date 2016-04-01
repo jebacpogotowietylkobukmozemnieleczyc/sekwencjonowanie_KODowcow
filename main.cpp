@@ -13,7 +13,7 @@
 
 #define OLI_LENGTH 10
 #define MATRIX_COUNT 1048576
-#define MAX_NEGATIVE 9
+#define MAX_NEGATIVE 1
 
 //#define PRINT_RESULT
 #define PRINT_STATS
@@ -52,8 +52,8 @@ public:
     void printVectorAsString();
 
     void greedyAlgorithm(int startNukleo);
-    int successor(int Nukleo);
-    int predecessor(int Nukleo);
+    int successor(uint32_t base, unsigned offset);
+    int predecessor(uint32_t nucleotide, unsigned offset);
     bool test();
 
 
@@ -178,14 +178,30 @@ int main(int argc, char *argv[]) {
 
 void OlinukleoLibrary::greedyAlgorithm(int startNukleo) {
     result.push_back(startNukleo);
-    int nukleo = startNukleo;
-    do {
-        nukleo = successor(nukleo);
-    } while (nukleo != -1);
-    nukleo = startNukleo;
-    do {
-        nukleo = predecessor(nukleo);
-    } while (nukleo != -1);
+    uint32_t successorNucleotide = startNukleo;
+    uint32_t predecessorNucleotide = startNukleo;
+            cout << "Next " << intIntoStringCoder(startNukleo) << endl;
+    int nextNucleotide = -1;
+    for (int i = 1; i <= MAX_NEGATIVE; ++i) {
+        while( (nextNucleotide = successor(successorNucleotide,i) )!=-1){
+//            cout << "Start" <<  intIntoStringCoder(successorNucleotide) << endl;
+//            cout << "Next " << intIntoStringCoder(nextNucleotide) << endl;
+            successorNucleotide = nextNucleotide;
+        };
+
+//    for (int el : result) {
+//        cout << intIntoStringCoder(el) << endl;
+//    }
+
+        while( (nextNucleotide = predecessor(predecessorNucleotide,i))!=-1){
+            predecessorNucleotide = nextNucleotide;
+        }
+//
+//    for (int el : result) {
+//        cout << intIntoStringCoder(el) << endl;
+//    }
+
+    }
 
 //    for (int el : result) {
 //        cout << intIntoStringCoder(el) << endl;
@@ -193,17 +209,15 @@ void OlinukleoLibrary::greedyAlgorithm(int startNukleo) {
 
 }
 
-int OlinukleoLibrary::successor(int Nukleo) {
-    int base;
+int OlinukleoLibrary::successor(uint32_t nucleotide, unsigned offset) {
     vector<int> successors;
-    for (int i = 1; i <= MAX_NEGATIVE; ++i) {
-        base = (Nukleo<<2*i) & ((1<<20)-1);
-        for (int j = base; j < base + pow(4,i); ++j) {
+    int base = (nucleotide << (2 * offset)) & ((1 << 20) - 1);
+        for (int j = base; j < base + pow(4,offset); ++j) {
             if(microArray[j]) {
 #ifdef COUNT_STATS
-                ++negativeOffset[i-1];
+                ++negativeOffset[offset-1];
 #endif
-                negativeError+=i-1;
+                negativeError+=offset-1;
                 successors.push_back(j);
             }
         }
@@ -213,32 +227,28 @@ int OlinukleoLibrary::successor(int Nukleo) {
             result.push_back(r);
             return r;
         }
-    }
     return -1;
 }
 
-int OlinukleoLibrary::predecessor(int Nukleo){
-    int base;
+int OlinukleoLibrary::predecessor(uint32_t nucleotide, unsigned offset){
     vector<int> predecessor;
-    int step = 262144;
-    for (int i = 1; i <= MAX_NEGATIVE; ++i) {
-        base = (Nukleo>>2*i) & ((1<<20)-1);
+    int step = 262144/pow(4,offset-1);
+    int base = (nucleotide>>(2*offset)) & ((1<<20)-1);
         for (int j = base; j <  MATRIX_COUNT; j+=step) {
             if(microArray[j]) {
 #ifdef COUNT_STATS
-                ++negativeOffset[i-1];
+                ++negativeOffset[offset-1];
 #endif
-                negativeError+=i-1;
+                negativeError+=offset-1;
+                predecessor.push_back(j);
             }
         }
         if(!predecessor.empty()){
             int r = predecessor.at(getRandom(0, predecessor.size() - 1));
             microArray[r] = false;
-            result.push_back(r);
+            result.push_front(r);
             return r;
         }
-        step/=4;
-    }
     return -1;
 }
 
@@ -255,7 +265,12 @@ bool OlinukleoLibrary::test() {
                     ++negative[j-1];
                     break;
                 }
-                if(j==MAX_NEGATIVE) return false;
+                if(j==MAX_NEGATIVE) {
+                    cout << "nie bylo mnie slychac " << endl;
+                            cout << intIntoStringCoder(result.at(i)) << endl;
+                    cout << intIntoStringCoder(result.at(i+1)) << endl;
+                    return false;
+                }
             }
         }
         ++i;
