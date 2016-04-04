@@ -20,7 +20,7 @@ public:
 
     int runN(uint32_t nucleotide, unsigned maxOffset, unsigned n ,function <int(uint32_t,unsigned)> f);
     int recursiveSuccessor(uint32_t nucleotide, unsigned maxOffset);
-    //todo implementation
+    //todo recursicePredecessor
     int recursicePredecessor(uint32_t nucleotide, unsigned maxOffset);
 
 };

@@ -45,6 +45,10 @@ protected:
     array<unsigned,MAX_NEGATIVE> randomVectorLimit;
 
 public:
+    //todo constructor
+//    Heuristic();
+//    Heuristic(Heuristic heuristic);
+
     virtual void run() = 0;
 
     void initRandomVector();
