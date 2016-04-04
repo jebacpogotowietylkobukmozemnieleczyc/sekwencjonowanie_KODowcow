@@ -19,7 +19,6 @@
 
 //#define PRINT_RESULT
 #define PRINT_STATS
-#define COUNT_STATS
 
 using namespace std;
 
@@ -38,52 +37,44 @@ uint32_t getRandom(uint32_t min, uint32_t max){
 
 
 
-
-
-
-class OlinukleoLibrary{
+class RandomHeuristic{
 private:
-    vector<int> oliLib;
-    unsigned m;
-public:
-    OlinukleoLibrary() {
+    unsigned m; // number of nucleotides in file
+    array<int,MAX_NEGATIVE> countOffset = {{0}};
+    unsigned negativeError = 0;
+    deque<unsigned> result;
+    bool microArray[MATRIX_COUNT] = {false};
 
-
-    }
-
-private:
+    //randomVector
     array< vector<int>,MAX_NEGATIVE> randomVectors;
     vector<unsigned > randomVector;
     unsigned randomVectorIterator;
     array<unsigned,MAX_NEGATIVE> randomVectorLimit;
 
 public:
-    unsigned negativeOffset[MAX_NEGATIVE] = {0};
-    unsigned negativeError = 0;
-    deque<int> result;
-    bool microArray[MATRIX_COUNT] = {false};
+    void run();
 
-    uint32_t stringIntoIntCoder(string sequence);
-    string intIntoStringCoder(uint32_t codedNumber);
-    int readFromFile(const char* fname, unsigned fileLength);
-    void printVector();
-    void printVectorAsString();
+    void runRandom();
+    int randomSuccessor(uint32_t base, unsigned offset);
+    int randomPredecessor(uint32_t nucleotide, unsigned offset);
 
-    void greedyAlgorithm(int startNukleo, unsigned randomFrequency);
-    int successor(uint32_t base, unsigned offset);
-    int predecessor(uint32_t nucleotide, unsigned offset);
+    void initRandomVector();
     void shuffleVector(int offset);
     void generateRandomVector(unsigned min, unsigned max);
-    void init();
 
 
+    bool checkIfMatch(uint32_t leftNucleotide, uint32_t rightNucleotide);
+    bool checkIfMatch(uint32_t leftNucleotide, uint32_t rightNucleotide, uint32_t offset);
     bool test();
-
-
     void printStats();
+    uint32_t stringIntoIntCoder(string sequence);
+    string intIntoStringCoder(uint32_t codedNumber);
+    void readFromFile(const char *fname, unsigned fileLength);
+    void printResult();
+    void printResultAsString();
 };
 
-uint32_t OlinukleoLibrary::stringIntoIntCoder(string sequence){
+uint32_t RandomHeuristic::stringIntoIntCoder(string sequence){
     uint32_t result = 0;
 
     for( int i = 0; i < sequence.length(); i++){
@@ -108,7 +99,7 @@ uint32_t OlinukleoLibrary::stringIntoIntCoder(string sequence){
 }
 
 
-string OlinukleoLibrary::intIntoStringCoder(uint32_t codedNumber){
+string RandomHeuristic::intIntoStringCoder(uint32_t codedNumber){
     string result;
 
     for( int i = OLI_LENGTH-1; i >= 0; i--){
@@ -130,21 +121,21 @@ string OlinukleoLibrary::intIntoStringCoder(uint32_t codedNumber){
     return result;
 }
 
-int OlinukleoLibrary::readFromFile(const char* fname, unsigned fileLength){
+void RandomHeuristic::readFromFile(const char *fname, unsigned fileLength){
     fstream file;
     int iterator = 0;
     string tmp;
-    int randomNukleo = -1;
+    int randomNucleotide = -1;
 
     int randomLine = getRandom(0, fileLength - 1);
     file.open(fname, ios::in);
     while (!file.eof()){
         file >> tmp;
-        microArray[OlinukleoLibrary::stringIntoIntCoder(tmp)]=true;
+        microArray[RandomHeuristic::stringIntoIntCoder(tmp)]=true;
         //todo take properties from file name
         if(iterator==randomLine){
-            randomNukleo=OlinukleoLibrary::stringIntoIntCoder(tmp);
-            microArray[OlinukleoLibrary::stringIntoIntCoder(tmp)]= false;
+            randomNucleotide = RandomHeuristic::stringIntoIntCoder(tmp);
+            microArray[RandomHeuristic::stringIntoIntCoder(tmp)]= false;
         }
         iterator++;
     }
@@ -153,112 +144,103 @@ int OlinukleoLibrary::readFromFile(const char* fname, unsigned fileLength){
 
     //todo empty line at end
     m = iterator - 1;
-    return randomNukleo;
+    result.push_back(randomNucleotide);
 }
 
-void OlinukleoLibrary::printVector(){
-    for (int i = 0; i < oliLib.size(); i++){
-        cout << oliLib[i] << endl;
+void RandomHeuristic::printResult(){
+    for (int element : result) {
+        cout << element << endl;
+
     }
 }
 
-void OlinukleoLibrary::printVectorAsString(){
-    for (int i = 0; i < oliLib.size(); i++){
-        cout << OlinukleoLibrary::intIntoStringCoder(oliLib[i]) << endl;
+void RandomHeuristic::printResultAsString(){
+    for (int element :result){
+        cout << RandomHeuristic::intIntoStringCoder(element) << endl;
     }
 }
 
 
-bool checkIfMatch(uint32_t leftOli, uint32_t rightOli){
-    return (leftOli & ((1 << 18) - 1) ) == ((rightOli >> 2) & ((1 << 18) - 1));
+
+bool RandomHeuristic::checkIfMatch(uint32_t leftNucleotide, uint32_t rightNucleotide) {
+    return (leftNucleotide & ((1 << 18) - 1) ) == ((rightNucleotide >> 2) & ((1 << 18) - 1));
 }
 
-bool checkIfMatch(uint32_t leftOli, uint32_t rightOli, uint32_t offset){
-    return (leftOli & ((1 << (20-(offset*2))) - 1) ) == ((rightOli >> (offset*2)) & ((1 << (20-(offset*2))) - 1));
+
+bool RandomHeuristic::checkIfMatch(uint32_t leftNucleotide, uint32_t rightNucleotide, uint32_t offset) {
+    return (leftNucleotide & ((1 << (20 - (offset * 2))) - 1) ) == ((rightNucleotide >> (offset * 2)) & ((1 << (20 - (offset * 2))) - 1));
 }
 
 int main(int argc, char *argv[]) {
-    cout << "Test Kondoma" << endl;
+    cout << "Test" << endl;
 
-    OlinukleoLibrary kondom;
-    int startNukleo;
-    if (argc > 1) startNukleo = kondom.readFromFile(argv[1],492);
-    else startNukleo = kondom.readFromFile("/home/klimas/Documents/Projects/clion/bio/data/negative/113.500-8",492);
+    RandomHeuristic heuristic;
+    if (argc > 1)  heuristic.readFromFile(argv[1], 492);
+    else  heuristic.readFromFile("/home/klimas/Documents/Projects/clion/bio/data/negative/113.500-8", 492);
 
-    kondom.init();
+    heuristic.initRandomVector();
 
     Timer timer;
     timer.start();
-    kondom.greedyAlgorithm(startNukleo,10);
+    heuristic.run();
     printf("Processing time: %fs\n", timer.stop());
 
 #ifdef PRINT_STATS
-    kondom.printStats();
+    heuristic.printStats();
 #endif
 
-    if(!kondom.test())cout << "cos sie zepsulo" << std::endl;
+    if(!heuristic.test())cout << "cos sie zepsulo" << std::endl;
 
     return 0;
 }
 
-void OlinukleoLibrary::greedyAlgorithm(int startNukleo,unsigned randomFrequency) {
-    result.push_back(startNukleo);
-    uint32_t successorNucleotide = startNukleo;
-    uint32_t predecessorNucleotide = startNukleo;
+void RandomHeuristic::runRandom() {
+    if(result.size()!=1){
+        cout << "cos sie zepsulo" << std::endl;
+    }
+    uint32_t successorNucleotide = result.at(0);
+    uint32_t predecessorNucleotide = result.at(0);
 
-    array<int,MAX_NEGATIVE> countOffset = {0};
 
 
     int nextNucleotide = -1;
     for (int i = 1; i <= MAX_NEGATIVE; ++i) {
-        while( (nextNucleotide = successor(successorNucleotide,i) )!=-1){
-//            cout << "Start" <<  intIntoStringCoder(successorNucleotide) << endl;
-//            cout << "Next " << intIntoStringCoder(nextNucleotide) << endl;
-            if( (++countOffset[i-1])==randomVectorLimit[i-1]){
+        while ((nextNucleotide = randomSuccessor(successorNucleotide, i)) != -1) {
+            if ((++countOffset[i - 1]) == randomVectorLimit[i - 1]) {
                 shuffleVector(i);
                 randomVectorIterator = randomVectorIterator >= randomVector.size() ? 0 : randomVectorIterator;
-                randomVectorLimit[i-1]+=randomVector[randomVectorIterator++];
+                randomVectorLimit[i - 1] += randomVector[randomVectorIterator++];
             }
-            if(i>1)--i;
+            if (i > 1){
+                --i;
+                negativeError+=i-1;
+            }
             successorNucleotide = nextNucleotide;
         };
 
-//    for (int el : result) {
-//        cout << intIntoStringCoder(el) << endl;
-//    }
 
-        while( (nextNucleotide = predecessor(predecessorNucleotide,i))!=-1){
-            if( (++countOffset[i-1])==randomVectorLimit[i-1]){
+        while ((nextNucleotide = randomPredecessor(predecessorNucleotide, i)) != -1) {
+            if ((++countOffset[i - 1]) == randomVectorLimit[i - 1]) {
                 shuffleVector(i);
                 randomVectorIterator = randomVectorIterator >= randomVector.size() ? 0 : randomVectorIterator;
-                randomVectorLimit[i-1]+=randomVector[randomVectorIterator++];
+                randomVectorLimit[i - 1] += randomVector[randomVectorIterator++];
             }
-            if(i>1)--i;
+            if (i > 1){
+                --i;
+                negativeError+=i-1;
+            }
             predecessorNucleotide = nextNucleotide;
         }
-//
-//    for (int el : result) {
-//        cout << intIntoStringCoder(el) << endl;
-//    }
 
     }
 
-//    for (int el : result) {
-//        cout << intIntoStringCoder(el) << endl;
-//    }
-
 }
 
-int OlinukleoLibrary::successor(uint32_t nucleotide, unsigned offset) {
+int RandomHeuristic::randomSuccessor(uint32_t nucleotide, unsigned offset) {
     int base = (nucleotide << (2 * offset)) & ((1 << 20) - 1);
         for (int j = 0; j <  pow(4,offset); ++j) {
             int r = base + randomVectors[offset - 1].at(j);
             if(microArray[r]) {
-#ifdef COUNT_STATS
-                ++negativeOffset[offset-1];
-#endif
-                negativeError+=offset-1;
-
                 result.push_back(r);
                 microArray[r] = false;
                 return r;
@@ -267,17 +249,12 @@ int OlinukleoLibrary::successor(uint32_t nucleotide, unsigned offset) {
     return -1;
 }
 
-int OlinukleoLibrary::predecessor(uint32_t nucleotide, unsigned offset){
+int RandomHeuristic::randomPredecessor(uint32_t nucleotide, unsigned offset){
     int step = 262144/pow(4,offset-1);
     int base = (nucleotide>>(2*offset)) & ((1<<20)-1);
     for (int j = 0; j <  pow(4,offset); ++j) {
         int r = base + randomVectors[offset - 1].at(j) * step;
-            if(microArray[j]) {
-#ifdef COUNT_STATS
-                ++negativeOffset[offset-1];
-#endif
-                negativeError+=offset-1;
-
+            if(microArray[r]) {
                 microArray[r] = false;
                 result.push_front(r);
                 return r;
@@ -287,7 +264,7 @@ int OlinukleoLibrary::predecessor(uint32_t nucleotide, unsigned offset){
     return -1;
 }
 
-bool OlinukleoLibrary::test() {
+bool RandomHeuristic::test() {
     int i = 0;
     int negative[MAX_NEGATIVE] = {0};
     for (auto element :result){
@@ -318,23 +295,22 @@ bool OlinukleoLibrary::test() {
     return true;
 }
 
-void OlinukleoLibrary::printStats() {
+void RandomHeuristic::printStats() {
     cout << "Słów w sekwencji: " << result.size() << endl;
     cout << "Słów w zbiorze: " << m << endl;
     for (int i = 0; i < MAX_NEGATIVE-1; ++i) {
-        cout << "NO " << i + 2 << ": " << negativeOffset[i+1] << endl;
+        cout << "NO " << i + 2 << ": " << countOffset[i+1] << endl;
     }
     cout << "Negative: " << negativeError << endl;
-
 }
 
-void OlinukleoLibrary::shuffleVector(int offset) {
+void RandomHeuristic::shuffleVector(int offset) {
     std::random_device rd;
     std::mt19937 g(rd());
     std::shuffle(randomVectors[offset - 1].begin(), randomVectors[offset - 1].end(), g);
 }
 
-void OlinukleoLibrary::generateRandomVector(unsigned min, unsigned max) {
+void RandomHeuristic::generateRandomVector(unsigned min, unsigned max) {
     unsigned s = (min + max) / 2 * (max - min + 1);
     unsigned n = m/s;
     int value(0);
@@ -345,7 +321,7 @@ void OlinukleoLibrary::generateRandomVector(unsigned min, unsigned max) {
     std::shuffle(randomVector.begin(), randomVector.end(), g);
 }
 
-void OlinukleoLibrary::init() {
+void RandomHeuristic::initRandomVector() {
 
 
     //wygenerowanie wektorów przejsc
@@ -367,4 +343,8 @@ void OlinukleoLibrary::init() {
     }
 
 
+}
+
+void RandomHeuristic::run() {
+    runRandom();
 }
