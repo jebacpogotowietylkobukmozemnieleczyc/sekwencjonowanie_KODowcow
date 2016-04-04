@@ -14,7 +14,7 @@ int main(int argc, char *argv[]) {
 
     Timer timer;
     timer.start();
-    heuristic.run();
+    heuristic.runForward();
     printf("Processing time: %fs\n", timer.stop());
 
 #ifdef PRINT_STATS

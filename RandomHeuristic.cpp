@@ -156,8 +156,11 @@ void RandomHeuristic::initRandomVector() {
 
 }
 
-void RandomHeuristic::run() {
-    runRandom();
+void RandomHeuristic::runForward() {
+    cout << "wynik: " << endl;
+    cout << recursiveSuccessor(result.at(0), 2) << endl; //musi być mniejszy niż MAX_NEGATIVE
+//    cout << runN(result.at(0), 2,50,recursiveSuccessor) << endl; //musi być mniejszy niż MAX_NEGATIVE
+
 }
 
 
@@ -268,4 +271,52 @@ rand.seed(seedval);
 mt19937::result_type random_number = udist(rand);
 
 return random_number;
+}
+
+int RandomHeuristic::recursiveSuccessor(uint32_t nucleotide, unsigned maxOffset) {
+    int cRate = 0;
+    for (int i = 1; i <= maxOffset; ++i) {
+        int base = (nucleotide << (2 * i)) & ((1 << 20) - 1);
+        for (int j = 0; j < pow(4, i); ++j) {
+            int r = base + randomVectors[i - 1].at(j);
+            if (microArray[r]) {
+                result.push_back(r);
+                microArray[r] = false;
+                negativeError+=i-1;
+                if ((++countOffset[i - 1]) == randomVectorLimit[i - 1]) {
+                    shuffleVector(i);
+                    randomVectorIterator = randomVectorIterator >= randomVector.size() ? 0 : randomVectorIterator;
+                    randomVectorLimit[i - 1] += randomVector[randomVectorIterator++];
+
+                    cRate = recursiveSuccessor(r, maxOffset);
+
+                    randomVectorIterator = randomVectorIterator <= 0 ? 0 : randomVectorIterator-1;
+                    randomVectorLimit[i - 1] -= randomVector[randomVectorIterator++];
+                    ++countOffset[i - 1];
+                }
+                else{
+                    cRate = recursiveSuccessor(r, maxOffset);
+                }
+                negativeError-=i-1;
+                microArray[r] = true;
+                result.pop_back();
+                return cRate;
+            }
+        }
+    }
+//    printResultAsString();
+//    printStats();
+    return rate();
+}
+
+unsigned RandomHeuristic::rate() {
+    return result.size()-negativeError;
+}
+
+int RandomHeuristic::runN(uint32_t nucleotide, unsigned maxOffset, unsigned n, function<int(uint32_t, unsigned)> f) {
+    int maxRate;
+    for (int i = 0; i < n; ++i) {
+        maxRate = max(maxRate, f(nucleotide, maxOffset));
+    }
+    return maxRate;
 }

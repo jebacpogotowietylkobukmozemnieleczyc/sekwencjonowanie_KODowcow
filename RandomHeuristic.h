@@ -13,7 +13,7 @@
 #include <random>
 #include <array>
 #include <algorithm>
-
+#include <functional>
 
 
 #define A_BIN 0
@@ -33,7 +33,7 @@ using namespace std;
 class RandomHeuristic{
 private:
     unsigned m; // number of nucleotides in file
-    array<int,MAX_NEGATIVE> countOffset = {{0}};
+    array<int,MAX_NEGATIVE> countOffset{};
     unsigned negativeError = 0;
     deque<unsigned> result;
     bool microArray[MATRIX_COUNT] = {false};
@@ -45,17 +45,23 @@ private:
     array<unsigned,MAX_NEGATIVE> randomVectorLimit;
 
 public:
-    void run();
+    void runForward();
 
     void runRandom();
     int randomSuccessor(uint32_t base, unsigned offset);
     int randomPredecessor(uint32_t nucleotide, unsigned offset);
+
+
+    int runN(uint32_t nucleotide, unsigned maxOffset, unsigned n ,function <int(uint32_t,unsigned)> f);
+    int recursiveSuccessor(uint32_t nucleotide, unsigned maxOffset);
+    int recursicePredecessor(uint32_t nucleotide, unsigned maxOffset);
 
     void initRandomVector();
     void shuffleVector(int offset);
     void generateRandomVector(unsigned min, unsigned max);
 
 
+    unsigned rate();
     bool checkIfMatch(uint32_t leftNucleotide, uint32_t rightNucleotide);
     bool checkIfMatch(uint32_t leftNucleotide, uint32_t rightNucleotide, uint32_t offset);
     uint32_t getRandom(uint32_t min, uint32_t max);
