@@ -19,8 +19,8 @@ void RandomHeuristic::run() {
         while ((nextNucleotide = randomSuccessor(successorNucleotide, i)) != -1) {
             if ((++countOffset[i - 1]) == randomVectorLimit[i - 1]) {
                 shuffleVector(i);
-                randomVectorIterator = randomVectorIterator >= randomVector.size() ? 0 : randomVectorIterator;
-                randomVectorLimit[i - 1] += randomVector[randomVectorIterator++];
+                randomVectorIterators[i-1] = randomVectorIterators[i-1] >= randomVector.size() ? 0 : randomVectorIterators[i-1];
+                randomVectorLimit[i - 1] += randomVector[randomVectorIterators[i-1]++];
             }
             if (i > 1){
                 --i;
@@ -33,8 +33,8 @@ void RandomHeuristic::run() {
         while ((nextNucleotide = randomPredecessor(predecessorNucleotide, i)) != -1) {
             if ((++countOffset[i - 1]) == randomVectorLimit[i - 1]) {
                 shuffleVector(i);
-                randomVectorIterator = randomVectorIterator >= randomVector.size() ? 0 : randomVectorIterator;
-                randomVectorLimit[i - 1] += randomVector[randomVectorIterator++];
+                randomVectorIterators[i-1] = randomVectorIterators[i-1] >= randomVector.size() ? 0 : randomVectorIterators[i-1];
+                randomVectorLimit[i - 1] += randomVector[randomVectorIterators[i-1]++];
             }
             if (i > 1){
                 --i;
@@ -78,8 +78,8 @@ int RandomHeuristic::randomPredecessor(uint32_t nucleotide, unsigned offset){
 
 void RandomHeuristic::runForward() {
     cout << "wynik: " << endl;
-    cout << recursiveSuccessor(result.at(0), 2) << endl; //musi być mniejszy niż MAX_NEGATIVE
-//    cout << runN(result.at(0), 2,50,recursiveSuccessor) << endl; //musi być mniejszy niż MAX_NEGATIVE
+//    cout << recursiveSuccessor(result.at(0), 2) << endl; //musi być mniejszy niż MAX_NEGATIVE
+    cout << runN(result.at(0), 2,50,[this](uint32_t nucleotide, unsigned offset){ return recursiveSuccessor(nucleotide,offset);}) << endl; //musi być mniejszy niż MAX_NEGATIVE
 
 }
 
@@ -96,18 +96,11 @@ int RandomHeuristic::recursiveSuccessor(uint32_t nucleotide, unsigned maxOffset)
                 negativeError+=i-1;
                 if ((++countOffset[i - 1]) == randomVectorLimit[i - 1]) {
                     shuffleVector(i);
-                    randomVectorIterator = randomVectorIterator >= randomVector.size() ? 0 : randomVectorIterator;
-                    randomVectorLimit[i - 1] += randomVector[randomVectorIterator++];
-
-                    cRate = recursiveSuccessor(r, maxOffset);
-
-                    randomVectorIterator = randomVectorIterator <= 0 ? 0 : randomVectorIterator-1;
-                    randomVectorLimit[i - 1] -= randomVector[randomVectorIterator++];
-                    ++countOffset[i - 1];
+                    randomVectorIterators[i-1] = randomVectorIterators[i-1] >= randomVector.size() ? 0 : randomVectorIterators[i-1];
+                    randomVectorLimit[i - 1] += randomVector[randomVectorIterators[i-1]++];
                 }
-                else{
-                    cRate = recursiveSuccessor(r, maxOffset);
-                }
+                cRate = recursiveSuccessor(r, maxOffset);
+                --countOffset[i - 1];
                 negativeError-=i-1;
                 microArray[r] = true;
                 result.pop_back();
@@ -116,7 +109,7 @@ int RandomHeuristic::recursiveSuccessor(uint32_t nucleotide, unsigned maxOffset)
         }
     }
 //    printResultAsString();
-//    printStats();
+    printStats();
     return rate();
 }
 
@@ -124,6 +117,7 @@ int RandomHeuristic::recursiveSuccessor(uint32_t nucleotide, unsigned maxOffset)
 int RandomHeuristic::runN(uint32_t nucleotide, unsigned maxOffset, unsigned n, function<int(uint32_t, unsigned)> f) {
     int maxRate;
     for (int i = 0; i < n; ++i) {
+        initRandomVectorLimit();
         maxRate = max(maxRate, f(nucleotide, maxOffset));
     }
     return maxRate;

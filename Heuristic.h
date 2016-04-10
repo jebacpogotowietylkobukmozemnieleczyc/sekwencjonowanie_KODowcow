@@ -14,6 +14,7 @@
 #include <array>
 #include <algorithm>
 #include <functional>
+#include <memory>
 
 
 #define A_BIN 0
@@ -32,22 +33,27 @@ using namespace std;
 
 class Heuristic{
 protected:
-    unsigned m; // number of nucleotides in file
-    array<int,MAX_NEGATIVE> countOffset{};
+    unsigned m = 0 ; // number of nucleotides in file
+    //todo zero?
+    array<int,MAX_NEGATIVE> countOffset;
     unsigned negativeError = 0;
     deque<unsigned> result;
-    bool microArray[MATRIX_COUNT] = {false};
+
+protected:
+    array<bool,MATRIX_COUNT> microArray;
 
     //randomVector
     array< vector<int>,MAX_NEGATIVE> randomVectors;
     vector<unsigned > randomVector;
-    unsigned randomVectorIterator;
     array<unsigned,MAX_NEGATIVE> randomVectorLimit;
+    array<unsigned,MAX_NEGATIVE> randomVectorIterators;
 
 public:
-    //todo constructor
-//    Heuristic();
-//    Heuristic(Heuristic heuristic);
+    Heuristic() {
+        countOffset.fill(0);
+        microArray.fill(false);
+
+    }
 
     virtual void run() = 0;
 
@@ -67,6 +73,8 @@ public:
     void readFromFile(const char *fname, unsigned fileLength);
     void printResult();
     void printResultAsString();
+
+    void initRandomVectorLimit();
 };
 
 

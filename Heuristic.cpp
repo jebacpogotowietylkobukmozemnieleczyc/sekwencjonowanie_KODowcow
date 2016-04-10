@@ -5,6 +5,7 @@
 #include "Heuristic.h"
 
 
+//todo co sie popsulo i liczba bledow negatywnych sie nie zgadza
 bool Heuristic::test() {
     int i = 0;
     int negative[MAX_NEGATIVE] = {0};
@@ -52,10 +53,8 @@ void Heuristic::shuffleVector(int offset) {
 }
 
 void Heuristic::generateRandomVector(unsigned min, unsigned max) {
-    unsigned s = (min + max) / 2 * (max - min + 1);
-    unsigned n = m/s;
-    int value(0);
-    std::generate_n(std::back_inserter(randomVector), n+1, [value]()mutable { return value++; });
+    int value(min);
+    std::generate_n(std::back_inserter(randomVector), static_cast<int>(m/20), [value,min,max]()mutable { if(value>max)value=min;return value++; });
 
     std::random_device rd;
     std::mt19937 g(rd());
@@ -79,11 +78,15 @@ void Heuristic::initRandomVector() {
     generateRandomVector(20, 40);
 
     //przypisanie poczatkowych wartości do limitu przy ktorym vectory przejsc beda "szaflowane"
+    initRandomVectorLimit();
+
+}
+
+void Heuristic::initRandomVectorLimit()  {
     for (int j = 0; j < MAX_NEGATIVE; ++j) {
-        randomVectorLimit[j] = randomVectors[j].at(0);
+        randomVectorIterators[j] = randomVectorIterators[j] >= randomVector.size() ? 0 : randomVectorIterators[j];
+        randomVectorLimit[j] = randomVector.at(randomVectorIterators[j]);
     }
-
-
 }
 
 
