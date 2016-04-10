@@ -1,12 +1,13 @@
 
 #include "timer.hpp"
 #include "RandomHeuristic.h"
+#include "MonteCarlo.h"
 
 
 int main(int argc, char *argv[]) {
     cout << "Test" << endl;
 
-    RandomHeuristic heuristic;
+    MonteCarlo heuristic;
     if (argc > 1)  heuristic.readFromFile(argv[1], 492);
     else  heuristic.readFromFile("/home/klimas/Documents/Projects/clion/bio/data/negative/113.500-8", 492);
 

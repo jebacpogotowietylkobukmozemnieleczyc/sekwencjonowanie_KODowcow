@@ -16,9 +16,10 @@ public:
 
     int recursiveSuccessor(uint32_t nucleotide, unsigned maxOffset);
     //todo recursicePredecessor
-    int recursicePredecessor(uint32_t nucleotide, unsigned maxOffset);
+    int recursivePredecessor(uint32_t nucleotide, unsigned maxOffset);
 
-    void runForward();
+    unsigned runForward(uint32_t nucleotide);
+    unsigned runBackward(uint32_t nucleotide);
 
 };
 

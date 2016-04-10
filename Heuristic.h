@@ -31,6 +31,7 @@
 
 using namespace std;
 
+
 class Heuristic{
 protected:
     unsigned m = 0 ; // number of nucleotides in file
