@@ -10,10 +10,15 @@
 
 class MonteCarlo : public Heuristic {
 public:
-    //todo monte carlo
-    void run() override final ;
-    int successor(uint32_t nucleotide, unsigned offset);
-    int predecessor(uint32_t nucleotide, unsigned offset);
+    int successor(uint32_t nucleotide, unsigned offset) override final;
+    int predecessor(uint32_t nucleotide, unsigned offset) override final;
+
+
+    int recursiveSuccessor(uint32_t nucleotide, unsigned maxOffset);
+    //todo recursicePredecessor
+    int recursicePredecessor(uint32_t nucleotide, unsigned maxOffset);
+
+    void runForward();
 
 };
 

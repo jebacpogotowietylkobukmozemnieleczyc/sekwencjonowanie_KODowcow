@@ -2,6 +2,7 @@
 // Created by klimas on 04.04.16.
 //
 
+#include "RandomHeuristic.h"
 #include "Heuristic.h"
 
 
@@ -204,3 +205,53 @@ unsigned Heuristic::rate() {
     return result.size()-negativeError;
 }
 
+int Heuristic::runN(uint32_t nucleotide, unsigned maxOffset, unsigned n, function<int(uint32_t, unsigned)> f) {
+    int maxRate;
+    for (int i = 0; i < n; ++i) {
+        initRandomVectorLimit();
+        maxRate = max(maxRate, f(nucleotide, maxOffset));
+    }
+    return maxRate;
+}
+
+void Heuristic::run() {
+    if(result.size()!=1){
+        cout << "cos sie zepsulo" << endl;
+    }
+    uint32_t successorNucleotide = result.at(0);
+    uint32_t predecessorNucleotide = result.at(0);
+
+
+
+    int nextNucleotide = -1;
+    for (int i = 1; i <= MAX_NEGATIVE; ++i) {
+        while ((nextNucleotide = successor(successorNucleotide, i)) != -1) {
+            if ((++countOffset[i - 1]) == randomVectorLimit[i - 1]) {
+                shuffleVector(i);
+                randomVectorIterators[i-1] = randomVectorIterators[i-1] >= randomVector.size() ? 0 : randomVectorIterators[i-1];
+                randomVectorLimit[i - 1] += randomVector[randomVectorIterators[i-1]++];
+            }
+            if (i > 1){
+                --i;
+                negativeError+=i-1;
+            }
+            successorNucleotide = nextNucleotide;
+        };
+
+
+        while ((nextNucleotide = predecessor(predecessorNucleotide, i)) != -1) {
+            if ((++countOffset[i - 1]) == randomVectorLimit[i - 1]) {
+                shuffleVector(i);
+                randomVectorIterators[i-1] = randomVectorIterators[i-1] >= randomVector.size() ? 0 : randomVectorIterators[i-1];
+                randomVectorLimit[i - 1] += randomVector[randomVectorIterators[i-1]++];
+            }
+            if (i > 1){
+                --i;
+                negativeError+=i-1;
+            }
+            predecessorNucleotide = nextNucleotide;
+        }
+
+    }
+
+}

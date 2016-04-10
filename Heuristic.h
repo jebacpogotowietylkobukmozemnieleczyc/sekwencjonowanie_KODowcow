@@ -55,11 +55,16 @@ public:
 
     }
 
-    virtual void run() = 0;
+    int runN(uint32_t nucleotide, unsigned maxOffset, unsigned n , function <int(uint32_t, unsigned)> f);
+    void run();
+
+    virtual int successor(uint32_t base, unsigned offset) = 0;
+    virtual int predecessor(uint32_t nucleotide, unsigned offset) = 0;
 
     void initRandomVector();
     void shuffleVector(int offset);
     void generateRandomVector(unsigned min, unsigned max);
+    void initRandomVectorLimit();
 
 
     unsigned rate();
@@ -74,7 +79,7 @@ public:
     void printResult();
     void printResultAsString();
 
-    void initRandomVectorLimit();
+
 };
 
 

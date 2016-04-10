@@ -5,49 +5,7 @@
 #include "RandomHeuristic.h"
 
 
-void RandomHeuristic::run() {
-    if(result.size()!=1){
-        cout << "cos sie zepsulo" << std::endl;
-    }
-    uint32_t successorNucleotide = result.at(0);
-    uint32_t predecessorNucleotide = result.at(0);
-
-
-
-    int nextNucleotide = -1;
-    for (int i = 1; i <= MAX_NEGATIVE; ++i) {
-        while ((nextNucleotide = randomSuccessor(successorNucleotide, i)) != -1) {
-            if ((++countOffset[i - 1]) == randomVectorLimit[i - 1]) {
-                shuffleVector(i);
-                randomVectorIterators[i-1] = randomVectorIterators[i-1] >= randomVector.size() ? 0 : randomVectorIterators[i-1];
-                randomVectorLimit[i - 1] += randomVector[randomVectorIterators[i-1]++];
-            }
-            if (i > 1){
-                --i;
-                negativeError+=i-1;
-            }
-            successorNucleotide = nextNucleotide;
-        };
-
-
-        while ((nextNucleotide = randomPredecessor(predecessorNucleotide, i)) != -1) {
-            if ((++countOffset[i - 1]) == randomVectorLimit[i - 1]) {
-                shuffleVector(i);
-                randomVectorIterators[i-1] = randomVectorIterators[i-1] >= randomVector.size() ? 0 : randomVectorIterators[i-1];
-                randomVectorLimit[i - 1] += randomVector[randomVectorIterators[i-1]++];
-            }
-            if (i > 1){
-                --i;
-                negativeError+=i-1;
-            }
-            predecessorNucleotide = nextNucleotide;
-        }
-
-    }
-
-}
-
-int RandomHeuristic::randomSuccessor(uint32_t nucleotide, unsigned offset) {
+int RandomHeuristic::successor(uint32_t nucleotide, unsigned offset) {
     int base = (nucleotide << (2 * offset)) & ((1 << 20) - 1);
     for (int j = 0; j <  pow(4,offset); ++j) {
         int r = base + randomVectors[offset - 1].at(j);
@@ -60,7 +18,7 @@ int RandomHeuristic::randomSuccessor(uint32_t nucleotide, unsigned offset) {
     return -1;
 }
 
-int RandomHeuristic::randomPredecessor(uint32_t nucleotide, unsigned offset){
+int RandomHeuristic::predecessor(uint32_t nucleotide, unsigned offset){
     int step = 262144/pow(4,offset-1);
     int base = (nucleotide>>(2*offset)) & ((1<<20)-1);
     for (int j = 0; j <  pow(4,offset); ++j) {
@@ -76,49 +34,5 @@ int RandomHeuristic::randomPredecessor(uint32_t nucleotide, unsigned offset){
 }
 
 
-void RandomHeuristic::runForward() {
-    cout << "wynik: " << endl;
-//    cout << recursiveSuccessor(result.at(0), 2) << endl; //musi być mniejszy niż MAX_NEGATIVE
-    cout << runN(result.at(0), 2,50,[this](uint32_t nucleotide, unsigned offset){ return recursiveSuccessor(nucleotide,offset);}) << endl; //musi być mniejszy niż MAX_NEGATIVE
-
-}
 
 
-int RandomHeuristic::recursiveSuccessor(uint32_t nucleotide, unsigned maxOffset) {
-    int cRate = 0;
-    for (int i = 1; i <= maxOffset; ++i) {
-        int base = (nucleotide << (2 * i)) & ((1 << 20) - 1);
-        for (int j = 0; j < pow(4, i); ++j) {
-            int r = base + randomVectors[i - 1].at(j);
-            if (microArray[r]) {
-                result.push_back(r);
-                microArray[r] = false;
-                negativeError+=i-1;
-                if ((++countOffset[i - 1]) == randomVectorLimit[i - 1]) {
-                    shuffleVector(i);
-                    randomVectorIterators[i-1] = randomVectorIterators[i-1] >= randomVector.size() ? 0 : randomVectorIterators[i-1];
-                    randomVectorLimit[i - 1] += randomVector[randomVectorIterators[i-1]++];
-                }
-                cRate = recursiveSuccessor(r, maxOffset);
-                --countOffset[i - 1];
-                negativeError-=i-1;
-                microArray[r] = true;
-                result.pop_back();
-                return cRate;
-            }
-        }
-    }
-//    printResultAsString();
-    printStats();
-    return rate();
-}
-
-
-int RandomHeuristic::runN(uint32_t nucleotide, unsigned maxOffset, unsigned n, function<int(uint32_t, unsigned)> f) {
-    int maxRate;
-    for (int i = 0; i < n; ++i) {
-        initRandomVectorLimit();
-        maxRate = max(maxRate, f(nucleotide, maxOffset));
-    }
-    return maxRate;
-}
