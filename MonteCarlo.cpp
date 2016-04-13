@@ -13,7 +13,7 @@ int MonteCarlo::successor(uint32_t nucleotide, unsigned offset) {
             successors.push_back(j);
         }
     }
-    if (successors.size() > 2) {
+    if (successors.size() > 1) {
         for (uint32_t element :successors) {
             tuple<uint32_t, unsigned> newRate{element, runForward(element)};
             maxRate = max(maxRate, newRate,
@@ -46,7 +46,7 @@ int MonteCarlo::predecessor(uint32_t nucleotide, unsigned offset) {
         }
     }
 
-    if (predecessors.size() > 2) {
+    if (predecessors.size() > 1) {
         for (uint32_t element :predecessors) {
             tuple<uint32_t, unsigned> newRate{element, runForward(element)};
             maxRate = max(maxRate, newRate,
@@ -68,7 +68,7 @@ int MonteCarlo::predecessor(uint32_t nucleotide, unsigned offset) {
 }
 
 
-int MonteCarlo::recursiveSuccessor(uint32_t nucleotide, unsigned maxOffset) {
+int MonteCarlo::recursivePredecessor(uint32_t nucleotide, unsigned maxOffset){
     int cRate = 0;
     int step = 262144;
     for (int i = 1; i <= maxOffset; ++i) {
@@ -100,7 +100,7 @@ int MonteCarlo::recursiveSuccessor(uint32_t nucleotide, unsigned maxOffset) {
     return rate();
 }
 
-int MonteCarlo::recursivePredecessor(uint32_t nucleotide, unsigned maxOffset) {
+int MonteCarlo::recursiveSuccessor(uint32_t nucleotide, unsigned maxOffset){
     int cRate = 0;
     for (int i = 1; i <= maxOffset; ++i) {
         int base = (nucleotide << (2 * i)) & ((1 << 20) - 1);

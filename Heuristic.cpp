@@ -69,10 +69,6 @@ void Heuristic::initRandomVector() {
     for (int i = 0; i < MAX_NEGATIVE; ++i) {
         std::generate_n(std::back_inserter(randomVectors[i]), pow(4, i + 1), [&](){ return randomVectors[i].size(); });
         shuffleVector(i + 1);
-//            cout << "Array: " <<  i << endl;
-//            for (int el : randomVectors[i]) {
-//                cout << el << endl;
-//            }
     }
 
     //wygenerowanie wektorow okreslajacych co ile wektory przejsc beda "szaflowane"
@@ -86,7 +82,7 @@ void Heuristic::initRandomVector() {
 void Heuristic::initRandomVectorLimit()  {
     for (int j = 0; j < MAX_NEGATIVE; ++j) {
         randomVectorIterators[j] = randomVectorIterators[j] >= randomVector.size() ? 0 : randomVectorIterators[j];
-        randomVectorLimit[j] = randomVector.at(randomVectorIterators[j]);
+        randomVectorLimit[j] += randomVector.at(randomVectorIterators[j]);
     }
 }
 
@@ -232,8 +228,8 @@ void Heuristic::run() {
                 randomVectorLimit[i - 1] += randomVector[randomVectorIterators[i-1]++];
             }
             if (i > 1){
-                --i;
                 negativeError+=i-1;
+                i=1;
             }
             successorNucleotide = nextNucleotide;
         };
@@ -246,8 +242,8 @@ void Heuristic::run() {
                 randomVectorLimit[i - 1] += randomVector[randomVectorIterators[i-1]++];
             }
             if (i > 1){
-                --i;
                 negativeError+=i-1;
+                i=1;
             }
             predecessorNucleotide = nextNucleotide;
         }

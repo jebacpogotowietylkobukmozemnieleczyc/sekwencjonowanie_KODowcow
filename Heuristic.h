@@ -53,7 +53,7 @@ public:
     Heuristic() {
         countOffset.fill(0);
         microArray.fill(false);
-
+        randomVectorLimit.fill(0);
     }
 
     int runN(uint32_t nucleotide, unsigned maxOffset, unsigned n , function <int(uint32_t, unsigned)> f);
