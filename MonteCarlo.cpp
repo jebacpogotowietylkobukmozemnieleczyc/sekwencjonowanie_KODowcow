@@ -8,7 +8,7 @@ int MonteCarlo::successor(uint32_t nucleotide, unsigned offset) {
     tuple<uint32_t, unsigned> maxRate{0, 0};
     vector<uint32_t> successors;
     int base = (nucleotide << (2 * offset)) & ((1 << 20) - 1);
-    for (int j = 0; j < pow(4, offset); ++j) {
+    for (int j = base; j < pow(4, offset); ++j) {
         if (microArray[j]) {
             successors.push_back(j);
         }
@@ -48,7 +48,7 @@ int MonteCarlo::predecessor(uint32_t nucleotide, unsigned offset) {
 
     if (predecessors.size() > 1) {
         for (uint32_t element :predecessors) {
-            tuple<uint32_t, unsigned> newRate{element, runForward(element)};
+            tuple<uint32_t, unsigned> newRate{element, runBackward(element)};
             maxRate = max(maxRate, newRate,
                           [](const tuple<uint32_t, unsigned> &tuple1, const tuple<uint32_t, unsigned> &tuple2) {
                               return get<1>(tuple1) < get<1>(tuple2);
