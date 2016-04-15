@@ -26,7 +26,7 @@
 #define MATRIX_COUNT 1048576
 #define MAX_NEGATIVE 9
 
-//#define PRINT_RESULT
+#define PRINT_RESULT
 #define PRINT_STATS
 
 using namespace std;
