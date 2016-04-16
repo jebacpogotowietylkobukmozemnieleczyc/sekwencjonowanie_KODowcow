@@ -38,6 +38,7 @@ protected:
     //todo zero?
     array<int,MAX_NEGATIVE> countOffset;
     unsigned negativeError = 0;
+    unsigned chainN = 0; //dl oryginalnego lancucha
     deque<unsigned> result;
 
 protected:
@@ -76,7 +77,7 @@ public:
     void printStats();
     uint32_t stringIntoIntCoder(string sequence);
     string intIntoStringCoder(uint32_t codedNumber);
-    void readFromFile(const char *fname, unsigned fileLength);
+    void readFromFile(const char *fname, unsigned fileLength, unsigned chainN);
     void printResult();
     void printResultAsString();
 

@@ -39,12 +39,12 @@ bool Heuristic::test() {
 }
 
 void Heuristic::printStats() {
-    cout << "Słów w sekwencji: " << result.size() << endl;
-    cout << "Słów w zbiorze: " << m << endl;
+    cout << result.size() << ";"; //Słów w sekwencji
+    //cout << m << ";"; //Słów w zbiorze
     for (int i = 0; i < MAX_NEGATIVE-1; ++i) {
-        cout << "NO " << i + 2 << ": " << countOffset[i+1] << endl;
+        cout << countOffset[i+1] << ";";
     }
-    cout << "Negative: " << negativeError << endl;
+    cout << negativeError << endl; //Negative
 }
 
 void Heuristic::shuffleVector(int offset) {
@@ -134,7 +134,9 @@ string Heuristic::intIntoStringCoder(uint32_t codedNumber){
     return result;
 }
 
-void Heuristic::readFromFile(const char *fname, unsigned fileLength){
+void Heuristic::readFromFile(const char *fname, unsigned fileLength, unsigned chainN){
+    this->chainN = chainN;
+
     fstream file;
     int iterator = 0;
     string tmp;
@@ -196,7 +198,8 @@ return random_number;
 
 
 unsigned Heuristic::rate() {
-    return result.size()*4-negativeError;
+    if((result.size()+negativeError) < chainN-1) return result.size();
+    else return 0;
 }
 
 int Heuristic::runN(uint32_t nucleotide, unsigned maxOffset, unsigned n, function<int(uint32_t, unsigned)> f) {
