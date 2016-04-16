@@ -72,6 +72,7 @@ public:
     unsigned rate();
     bool checkIfMatch(uint32_t leftNucleotide, uint32_t rightNucleotide);
     bool checkIfMatch(uint32_t leftNucleotide, uint32_t rightNucleotide, uint32_t offset);
+    bool checkIfCorrect();
     uint32_t getRandom(uint32_t min, uint32_t max);
     bool test();
     void printStats();

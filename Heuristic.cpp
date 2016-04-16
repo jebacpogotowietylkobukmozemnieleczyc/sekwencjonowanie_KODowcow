@@ -174,6 +174,10 @@ void Heuristic::printResultAsString(){
 }
 
 
+bool Heuristic::checkIfCorrect(){
+    if((result.size()+negativeError) > chainN) return false;
+    else return true;
+}
 
 bool Heuristic::checkIfMatch(uint32_t leftNucleotide, uint32_t rightNucleotide) {
     return (leftNucleotide & ((1 << 18) - 1) ) == ((rightNucleotide >> 2) & ((1 << 18) - 1));
@@ -198,8 +202,8 @@ return random_number;
 
 
 unsigned Heuristic::rate() {
-    if((result.size()+negativeError) < chainN-1) return result.size();
-    else return 0;
+    if((result.size()+negativeError) > chainN) return 0;
+    else return result.size();
 }
 
 int Heuristic::runN(uint32_t nucleotide, unsigned maxOffset, unsigned n, function<int(uint32_t, unsigned)> f) {

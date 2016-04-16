@@ -41,6 +41,8 @@ void parseAndTest(const char *fname){
 
     heuristic.printStats();
 
+    cout << heuristic.checkIfCorrect() << endl; //sprawdza czy się mieści
+
     tmp.clear();
     tmp2.clear();
 
