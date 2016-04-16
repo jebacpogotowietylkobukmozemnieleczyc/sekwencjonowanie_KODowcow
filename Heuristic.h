@@ -26,7 +26,7 @@
 #define MATRIX_COUNT 1048576
 #define MAX_NEGATIVE 9
 
-#define PRINT_RESULT
+//#define PRINT_RESULT
 #define PRINT_STATS
 
 using namespace std;
@@ -59,7 +59,7 @@ public:
     int runN(uint32_t nucleotide, unsigned maxOffset, unsigned n , function <int(uint32_t, unsigned)> f);
     void run();
 
-    virtual int successor(uint32_t base, unsigned offset) = 0;
+    virtual int successor(uint32_t nucleotide, unsigned offset) = 0;
     virtual int predecessor(uint32_t nucleotide, unsigned offset) = 0;
 
     void initRandomVector();

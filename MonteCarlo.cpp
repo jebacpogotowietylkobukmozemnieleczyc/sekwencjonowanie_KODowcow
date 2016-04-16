@@ -8,7 +8,7 @@ int MonteCarlo::successor(uint32_t nucleotide, unsigned offset) {
     tuple<uint32_t, unsigned> maxRate{0, 0};
     vector<uint32_t> successors;
     int base = (nucleotide << (2 * offset)) & ((1 << 20) - 1);
-    for (int j = base; j < pow(4, offset); ++j) {
+    for (int j = base; j < base + pow(4, offset); ++j) {
         if (microArray[j]) {
             successors.push_back(j);
         }
@@ -85,7 +85,7 @@ int MonteCarlo::recursivePredecessor(uint32_t nucleotide, unsigned maxOffset){
                             randomVectorIterators[i - 1] >= randomVector.size() ? 0 : randomVectorIterators[i - 1];
                     randomVectorLimit[i - 1] += randomVector[randomVectorIterators[i - 1]++];
                 }
-                cRate = recursiveSuccessor(r, maxOffset);
+                cRate = recursivePredecessor(r, maxOffset);
                 --countOffset[i - 1];
                 negativeError -= i - 1;
                 microArray[r] = true;

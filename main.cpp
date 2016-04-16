@@ -1,4 +1,3 @@
-
 #include "timer.hpp"
 #include "RandomHeuristic.h"
 #include "MonteCarlo.h"
@@ -9,7 +8,7 @@ int main(int argc, char *argv[]) {
 
     MonteCarlo heuristic;
     if (argc > 1)  heuristic.readFromFile(argv[1], 492);
-    else  heuristic.readFromFile("/home/klimas/Documents/Projects/clion/bio/data/negative/113.500-8", 492);
+    else  heuristic.readFromFile("/home/klimas/Documents/Projects/clion/bio/data/negative/59.500-2", 498);
 
     heuristic.initRandomVector();
 

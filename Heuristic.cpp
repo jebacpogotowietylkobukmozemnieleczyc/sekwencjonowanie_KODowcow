@@ -152,9 +152,7 @@ void Heuristic::readFromFile(const char *fname, unsigned fileLength){
         }
         iterator++;
     }
-
     file.close();
-
     //todo empty line at end
     m = iterator - 1;
     result.push_back(randomNucleotide);
@@ -198,7 +196,7 @@ return random_number;
 
 
 unsigned Heuristic::rate() {
-    return result.size()-negativeError;
+    return result.size()*4-negativeError;
 }
 
 int Heuristic::runN(uint32_t nucleotide, unsigned maxOffset, unsigned n, function<int(uint32_t, unsigned)> f) {
@@ -216,8 +214,6 @@ void Heuristic::run() {
     }
     uint32_t successorNucleotide = result.at(0);
     uint32_t predecessorNucleotide = result.at(0);
-
-
 
     int nextNucleotide = -1;
     for (int i = 1; i <= MAX_NEGATIVE; ++i) {
