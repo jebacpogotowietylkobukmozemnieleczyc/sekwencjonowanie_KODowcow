@@ -147,7 +147,6 @@ void Heuristic::readFromFile(const char *fname, unsigned fileLength, unsigned ch
     while (!file.eof()){
         file >> tmp;
         microArray[Heuristic::stringIntoIntCoder(tmp)]=true;
-        //todo take properties from file name
         if(iterator==randomLine){
             randomNucleotide = Heuristic::stringIntoIntCoder(tmp);
             microArray[Heuristic::stringIntoIntCoder(tmp)]= false;
@@ -225,6 +224,7 @@ void Heuristic::run() {
     int nextNucleotide = -1;
     for (int i = 1; i <= MAX_NEGATIVE; ++i) {
         while ((nextNucleotide = successor(successorNucleotide, i)) != -1) {
+            if(result.size()+negativeError>=chainN)return;
             if ((++countOffset[i - 1]) == randomVectorLimit[i - 1]) {
                 shuffleVector(i);
                 randomVectorIterators[i-1] = randomVectorIterators[i-1] >= randomVector.size() ? 0 : randomVectorIterators[i-1];
@@ -239,6 +239,7 @@ void Heuristic::run() {
 
 
         while ((nextNucleotide = predecessor(predecessorNucleotide, i)) != -1) {
+            if(result.size()+negativeError>=chainN)return;
             if ((++countOffset[i - 1]) == randomVectorLimit[i - 1]) {
                 shuffleVector(i);
                 randomVectorIterators[i-1] = randomVectorIterators[i-1] >= randomVector.size() ? 0 : randomVectorIterators[i-1];

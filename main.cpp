@@ -3,6 +3,7 @@
 #include "MonteCarlo.h"
 #include <iostream>
 #include <fstream>
+#include <cstring>
 
 void parseAndTest(const char *fname){
     int sub1 = 0, sub2 = 0;
@@ -67,7 +68,7 @@ void parseAndTestAll(const char *fname){
 int main(int argc, char *argv[]) {
     cout << "Test" << endl;
 
-    parseAndTestAll("testInstances.txt");
+    parseAndTestAll("/home/klimas/Documents/Projects/clion/bio2/testInstances.txt");
 
 }
 
