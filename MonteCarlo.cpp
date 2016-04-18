@@ -4,6 +4,7 @@
 #include "MonteCarlo.h"
 
 
+
 int MonteCarlo::successor(uint32_t nucleotide, unsigned offset) {
     tuple<uint32_t, unsigned> maxRate{0, 0};
     vector<uint32_t> successors;
@@ -132,7 +133,7 @@ int MonteCarlo::recursiveSuccessor(uint32_t nucleotide, unsigned maxOffset){
 
 unsigned MonteCarlo::runForward(uint32_t nucleotide) {
     //todo //musi być mniejszy niż MAX_NEGATIVE
-    return runN(nucleotide, 2, 50, [this](uint32_t nucleotide, unsigned offset) {
+    return runN(nucleotide, TEST_OFFSET, TEST_AMOUNT, [this](uint32_t nucleotide, unsigned offset) {
         return recursiveSuccessor(nucleotide, offset);
     }); //musi być mniejszy niż MAX_NEGATIVE
 
@@ -140,7 +141,7 @@ unsigned MonteCarlo::runForward(uint32_t nucleotide) {
 
 unsigned MonteCarlo::runBackward(uint32_t nucleotide) {
     //todo //musi być mniejszy niż MAX_NEGATIVE
-    return runN(nucleotide, 2, 50, [this](uint32_t nucleotide, unsigned offset) {
+    return runN(nucleotide, TEST_OFFSET, TEST_AMOUNT, [this](uint32_t nucleotide, unsigned offset) {
         return recursivePredecessor(nucleotide, offset);
     }); //musi być mniejszy niż MAX_NEGATIVE
 

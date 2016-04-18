@@ -29,6 +29,14 @@
 //#define PRINT_RESULT
 #define PRINT_STATS
 
+
+//parametry
+#define TEST_AMOUNT 50
+#define TEST_OFFSET 2
+//min i max co ile "szafluje" wektory
+#define MAX_RANDOM_VECTOR 40
+#define MIN_RANDOM_VECTOR 20
+
 using namespace std;
 
 
@@ -80,6 +88,7 @@ public:
     string intIntoStringCoder(uint32_t codedNumber);
     void readFromFile(const char *fname, unsigned fileLength, unsigned chainN);
     void printResult();
+    void printSequence();
     void printResultAsString();
 
 

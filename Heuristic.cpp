@@ -6,6 +6,7 @@
 #include "Heuristic.h"
 
 
+
 //todo co sie popsulo i liczba bledow negatywnych sie nie zgadza
 bool Heuristic::test() {
     int i = 0;
@@ -72,7 +73,7 @@ void Heuristic::initRandomVector() {
     }
 
     //wygenerowanie wektorow okreslajacych co ile wektory przejsc beda "szaflowane"
-    generateRandomVector(20, 40);
+    generateRandomVector(MIN_RANDOM_VECTOR, MAX_RANDOM_VECTOR);
 
     //przypisanie poczatkowych wartości do limitu przy ktorym vectory przejsc beda "szaflowane"
     initRandomVectorLimit();
@@ -224,34 +225,62 @@ void Heuristic::run() {
     int nextNucleotide = -1;
     for (int i = 1; i <= MAX_NEGATIVE; ++i) {
         while ((nextNucleotide = successor(successorNucleotide, i)) != -1) {
-            if(result.size()+negativeError>=chainN)return;
+            negativeError+=i-1;
+            if(result.size()+negativeError==chainN)return;
+            else if(result.size()+negativeError>chainN){
+                result.pop_back();
+                negativeError-=i-1;
+                return;
+            }
             if ((++countOffset[i - 1]) == randomVectorLimit[i - 1]) {
                 shuffleVector(i);
                 randomVectorIterators[i-1] = randomVectorIterators[i-1] >= randomVector.size() ? 0 : randomVectorIterators[i-1];
                 randomVectorLimit[i - 1] += randomVector[randomVectorIterators[i-1]++];
             }
-            if (i > 1){
-                negativeError+=i-1;
                 i=1;
-            }
             successorNucleotide = nextNucleotide;
         };
 
 
         while ((nextNucleotide = predecessor(predecessorNucleotide, i)) != -1) {
-            if(result.size()+negativeError>=chainN)return;
+            negativeError+=i-1;
+            if(result.size()+negativeError==chainN)return;
+            else if(result.size()+negativeError>chainN){
+                result.pop_front();
+                negativeError-=i-1;
+                return;
+            }
             if ((++countOffset[i - 1]) == randomVectorLimit[i - 1]) {
                 shuffleVector(i);
                 randomVectorIterators[i-1] = randomVectorIterators[i-1] >= randomVector.size() ? 0 : randomVectorIterators[i-1];
                 randomVectorLimit[i - 1] += randomVector[randomVectorIterators[i-1]++];
             }
-            if (i > 1){
-                negativeError+=i-1;
                 i=1;
-            }
             predecessorNucleotide = nextNucleotide;
         }
 
     }
+
+}
+
+void Heuristic::printSequence() {
+    auto i = result.begin();
+    cout << intIntoStringCoder(*(i));
+    for (++i;i!= result.end();++i) {
+        switch( (*(i) & 3)){
+            case A_BIN: cout << "A";
+                break;
+
+            case C_BIN: cout << "C";
+                break;
+
+            case G_BIN: cout << "G";
+                break;
+
+            case T_BIN: cout << "T";
+                break;
+        }
+    }
+    cout << endl;
 
 }
